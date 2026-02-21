@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import VisionLayer from "@/components/VisionLayer";
 import HUDOverlay from "@/components/HUDOverlay";
 import MemoryCard from "@/components/MemoryCard";
 import LiveSubtitles from "@/components/LiveSubtitles";
 import DebugPanel from "@/components/DebugPanel";
 import { useToast } from "@/hooks/use-toast";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
 const MOCK_PERSON = {
   name: "Jake",
@@ -14,22 +15,22 @@ const MOCK_PERSON = {
   confidence: 94,
 };
 
-const MOCK_TRANSCRIPT = "Hey Dad, how are you? I brought some of those cookies you like. Remember the hackathon I told you about? We actually won! The judges loved our demo.";
-
 const Index = () => {
   const [isRecognizing, setIsRecognizing] = useState(false);
   const { toast } = useToast();
+  const speech = useSpeechRecognition();
 
   const handleSimulateRecognize = () => {
     setIsRecognizing(true);
+    speech.start();
   };
 
   const handleSimulateEnd = () => {
+    speech.stop();
     toast({
       title: "💾 Saving to Memory...",
       description: "New conversation context has been stored.",
     });
-
     setIsRecognizing(false);
   };
 
@@ -46,7 +47,13 @@ const Index = () => {
         confidence={MOCK_PERSON.confidence}
       />
 
-      <LiveSubtitles visible={isRecognizing} text={MOCK_TRANSCRIPT} />
+      <LiveSubtitles
+        visible={isRecognizing}
+        transcript={speech.transcript}
+        interimTranscript={speech.interimTranscript}
+        isListening={speech.isListening}
+        isSupported={speech.isSupported}
+      />
 
       <DebugPanel
         onSimulateRecognize={handleSimulateRecognize}
